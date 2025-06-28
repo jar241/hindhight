@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+/* src/KpiCard.css */
+.kpi-card {
+    background-color: var(--color-surface);
+    border-radius: var(--radius-medium);
+
+    padding: var(--card-padding);
+    /*box-shadow: var(--shadow-subtle);*/
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    transition: all 0.2s ease;
+}
+/*  
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+}*/
+  
+/* Variants from design system */
+.kpi-card.primary {
+    background-color: var(--color-card-primary);
+}
+  
+.kpi-card.secondary {
+    background-color: var(--color-card-secondary);
+}
+
+.kpi-card.tertiary {
+    background-color: var(--color-card-tertiary);
+}
+  
+.kpi-title {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+}
+  
+.kpi-main-value {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    font-family: 'Roboto Mono', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+    letter-spacing: 0;
+}
+  
+.kpi-sub-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+  
+.kpi-change {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-indicator-positive); /* Default to positive, can be changed with JS */
+    font-family: 'Roboto Mono', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+    letter-spacing: 0;
+}
+
+.kpi-change.neutral {
+    font-size: 14px;
+    color: var(--color-text-primary);
+}
+
+.kpi-change.positive {
+    color: var(--color-indicator-positive);
+}
+
+.kpi-change.negative {
+    color: var(--color-indicator-negative);
+}
+
+.kpi-subtext {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+}

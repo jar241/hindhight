@@ -1,0 +1,52 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 28px;
+  border-bottom: 1px solid rgba(80, 80, 80, 0.1);
+  background-color: #ffffff;
+}
+
+.logo {
+  font-family: 'Lexend Deca', sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+  text-transform: uppercase;
+  color: #000000;
+}
+
+.theme-toggle {
+  display: flex;
+  gap: 16px;
+}
+
+.theme-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px;
+  border-radius: 8px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.theme-button.active {
+  background-color: rgba(28, 28, 28, 0.05);
+}
+
+.theme-button:hover {
+  background-color: rgba(28, 28, 28, 0.1);
+}
+
+.theme-button svg {
+  width: 20px;
+  height: 20px;
+} 
