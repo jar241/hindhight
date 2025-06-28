@@ -1,38 +1,80 @@
-.App {
-  text-align: center;
+/* src/App.css */
+
+/* ============================================= */
+/*       1. 디자인 시스템 토큰 (CSS 변수)       */
+/* ============================================= */
+:root {
+  /* Color Palette (동기화) */
+  --color-background: #FFFFFF;
+  --color-surface: #F8F9FA;
+  --color-card-primary: #F7F9FB;
+  --color-card-secondary: #F7F9FB;
+  --color-card-tertiary: #F7F9FB;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #666666;
+  --color-text-muted: #D4D4D4;
+  --color-text-accent: #2196F3;
+  --color-indicator-positive: #F44336; /* 빨간색(상승) */
+  --color-indicator-negative: #0090FF; /* 파란색(하락) */
+  --color-indicator-neutral: #FF9800;
+  --color-border: #E5E7EB;
+  --color-chart-line: #333333; /* ⭐️차트라인 주컬러 */
+  --color-chart-line-secondary: #90CAF9;
+  --color-chart-fill: #E3F2FD;
+  --color-chart-grid: #eeeeee;
+  --color-chart-point: #1976D2;
+  --color-chart-point-secondary: #90CAF9;
+
+  /* Typography (동기화) */
+  --font-primary: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+  --font-size-brand-title: 24px;
+  --font-weight-brand-title: 700;
+  --font-size-card-title: 14px;
+  --font-weight-card-title: 500;
+  --font-size-primary-value: 28px;
+  --font-weight-primary-value: 600;
+  --font-size-secondary-value: 18px;
+  --font-weight-secondary-value: 500;
+  --font-size-percentage-change: 12px;
+  --font-weight-percentage-change: 500;
+  --font-size-chart-labels: 11px;
+  --font-weight-chart-labels: 400;
+  --font-size-button-text: 12px;
+  --font-weight-button-text: 500;
+
+  /* Spacing (동기화) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+  --container-padding: 24px;
+  --card-padding: 24px;
+  --card-gap: 8px;
+
+  /* Border Radius (동기화) */
+  --radius-small: 8px;
+  --radius-medium: 12px;
+  --radius-large: 16px;
+  --radius-pill: 24px;
+
+  /* Shadows (동기화) */
+  --shadow-none: none;
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-tooltip: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
+/* (여기에 다크 모드용 변수를 추가할 수 있습니다) */
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* ============================================= */
+/*              2. 전역 기본 스타일              */
+/* ============================================= */
+body {
+  margin: 0;
+  font-family: var(--font-primary), var(--font-korean);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-background);
 }

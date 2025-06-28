@@ -1,0 +1,46 @@
+{
+    "Meta Data": {
+        "1. Information": "Daily Prices (open, high, low, close) and Volumes",
+        "2. Symbol": "NKE",
+        "3. Last Refreshed": "2024-06-21",
+        "4. Output Size": "Compact",
+        "5. Time Zone": "US/Eastern"
+    },
+    "Time Series (Daily)": {
+        "2024-06-21": {
+            "1. open": "95.10",
+            "2. high": "95.20",
+            "3. low": "94.07",
+            "4. close": "94.67",
+            "5. volume": "8570223"
+        },
+        "2024-06-20": {
+            "1. open": "93.45",
+            "2. high": "94.88",
+            "3. low": "93.31",
+            "4. close": "94.62",
+            "5. volume": "10093847"
+        },
+        "2024-06-18": {
+            "1. open": "92.83",
+            "2. high": "93.42",
+            "3. low": "92.51",
+            "4. close": "93.20",
+            "5. volume": "7580790"
+        },
+        "2024-06-17": {
+            "1. open": "92.58",
+            "2. high": "93.52",
+            "3. low": "92.27",
+            "4. close": "92.93",
+            "5. volume": "7787289"
+        },
+        "2024-06-14": {
+            "1. open": "92.88",
+            "2. high": "93.00",
+            "3. low": "91.93",
+            "4. close": "92.38",
+            "5. volume": "12981504"
+        }
+    }
+}

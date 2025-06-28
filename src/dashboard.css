@@ -1,0 +1,52 @@
+/* src/dashboard.css */
+
+/* 1. 컴포넌트/레이아웃 스타일만 남김 */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 64px; /* 헤더 공간 확보 */
+}
+
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+    margin-bottom: var(--space-lg);
+}
+
+.brand-title {
+    font-size: var(--font-size-brand-title);
+    font-weight: var(--font-weight-brand-title);
+    letter-spacing: -0.02em;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--card-gap);
+    margin-top: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.chart-card {
+    background-color: #ffffff;
+    border-radius: var(--radius-large);
+    /* padding: var(--card-padding);*/
+    padding-bottom: var(--space-lg);
+    min-height: 400px;
+    height: 50vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.action-btn.primary {
+  background-color: var(--color-text-primary);
+  color: var(--color-background);
+  border-color: var(--color-text-primary);
+  border-radius: var(--radius-small);
+}
+
+.action-btn {
+  border-radius: var(--radius-pill);
+}
