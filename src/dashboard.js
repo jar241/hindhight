@@ -6,6 +6,7 @@ import KpiCard from './KpiCard'; // 우리가 새로 만든 카드를 불러옵�
 import { fetchStockData } from './api/stockApi';
 import { getDummyChartData } from './dummyChartData';
 import { getDummyTrades } from './ChartComponent';
+import Header from './Header';
 
 // 첨부 이미지의 거래내역을 하드코딩 (type: buy, note 포함)
 const customTrades = [
@@ -223,98 +224,101 @@ function Dashboard() {
   }
 
   return (
-    <div className="dashboard-container">
-      <div className="metrics-grid">
-        <KpiCard
-          title="NKE - Nike, Inc."
-          value={mainLastPrice !== null ? `$${mainLastPrice.toFixed(2)}` : '...'}
-          change={changeLabel}
-          changeColor={changeColor}
-          variant="primary"
-        />
-        <KpiCard
-          title="내 평가금"
-          value={evalValue}
-          change={evalChange}
-          changeColor={evalChangeColor}
-          variant="secondary"
-        />
-        <KpiCard
-          title="내 보유 현황"
-          value={avgPrice && totalShares ? `$${avgPrice.toFixed(2)} × ${totalShares}주` : '...'}
-          subtext={`매수 ${buyCount}회, 매도 ${sellCount}회`}
-          variant="tertiary"
-        />
-      </div>
-      <div className="chart-section-container">
-        <main className="chart-card">
-          <ChartComponent
-            symbol="NKE"
-            timeRange={timeRange}
-            allTrades={customTrades}
-            priceData={filteredData}
+    <>
+      <Header />
+      <div className="dashboard-container">
+        <div className="metrics-grid">
+          <KpiCard
+            title="NKE - Nike, Inc."
+            value={mainLastPrice !== null ? `$${mainLastPrice.toFixed(2)}` : '...'}
+            change={changeLabel}
+            changeColor={changeColor}
+            variant="primary"
           />
-        </main>
-        <div className="chart-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <KpiCard
+            title="내 평가금"
+            value={evalValue}
+            change={evalChange}
+            changeColor={evalChangeColor}
+            variant="secondary"
+          />
+          <KpiCard
+            title="내 보유 현황"
+            value={avgPrice && totalShares ? `$${avgPrice.toFixed(2)} × ${totalShares}주` : '...'}
+            subtext={`매수 ${buyCount}회, 매도 ${sellCount}회`}
+            variant="tertiary"
+          />
+        </div>
+        <div className="chart-section-container">
+          <main className="chart-card">
+            <ChartComponent
+              symbol="NKE"
+              timeRange={timeRange}
+              allTrades={customTrades}
+              priceData={filteredData}
+            />
+          </main>
+          <div className="chart-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
             <div className="time-selector">
-              {['1D','5D','1M','3M','6M','1Y','3Y','5Y','MAX','직접입력'].map(opt => (
+                {['1D','5D','1M','3M','6M','1Y','3Y','5Y','MAX','직접입력'].map(opt => (
                 <button
-                  key={opt}
-                  className={`time-option ${timeRange === opt ? 'active' : ''}`}
-                  onClick={() => setTimeRange(opt)}
-                  style={opt === '직접입력' ? { minWidth: 80, fontWeight: 700 } : {}}
+                    key={opt}
+                    className={`time-option ${timeRange === opt ? 'active' : ''}`}
+                    onClick={() => setTimeRange(opt)}
+                    style={opt === '직접입력' ? { minWidth: 80, fontWeight: 700 } : {}}
                 >
-                  {opt}
+                    {opt}
                 </button>
               ))}
-            </div>
-            {timeRange === '직접입력' && (
-              <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                <input
-                  type="date"
-                  value={customStartDate}
-                  onChange={e => setCustomStartDate(e.target.value)}
-                  style={{
-                    border: '1px solid #E0E0E0',
-                    borderRadius: 8,
-                    padding: '10px 16px',
-                    fontSize: 14,
-                    fontFamily: 'Roboto Mono',
-                    outline: 'none',
-                    background: '#fff',
-                    color: '#222',
-                    width: 160
-                  }}
-                  placeholder="YYYY.MM.DD"
-                />
-                <span style={{ alignSelf: 'center', color: '#B0B0B0', fontWeight: 700 }}>~</span>
-                <input
-                  type="date"
-                  value={customEndDate}
-                  onChange={e => setCustomEndDate(e.target.value)}
-                  style={{
-                    border: '1px solid #E0E0E0',
-                    borderRadius: 8,
-                    padding: '10px 16px',
-                    fontSize: 14,
-                    fontFamily: 'Roboto Mono',
-                    outline: 'none',
-                    background: '#fff',
-                    color: '#222',
-                    width: 160
-                  }}
-                  placeholder="YYYY.MM.DD"
-                />
               </div>
-            )}
-          </div>
-          <div className="action-buttons">
-            <button className="action-btn primary">CSV 업로드</button>
+              {timeRange === '직접입력' && (
+                <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={e => setCustomStartDate(e.target.value)}
+                    style={{
+                      border: '1px solid #E0E0E0',
+                      borderRadius: 8,
+                      padding: '10px 16px',
+                      fontSize: 14,
+                      fontFamily: 'Roboto Mono',
+                      outline: 'none',
+                      background: '#fff',
+                      color: '#222',
+                      width: 160
+                    }}
+                    placeholder="YYYY.MM.DD"
+                  />
+                  <span style={{ alignSelf: 'center', color: '#B0B0B0', fontWeight: 700 }}>~</span>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={e => setCustomEndDate(e.target.value)}
+                    style={{
+                      border: '1px solid #E0E0E0',
+                      borderRadius: 8,
+                      padding: '10px 16px',
+                      fontSize: 14,
+                      fontFamily: 'Roboto Mono',
+                      outline: 'none',
+                      background: '#fff',
+                      color: '#222',
+                      width: 160
+                    }}
+                    placeholder="YYYY.MM.DD"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="action-buttons">
+              <button className="action-btn primary">CSV 업로드</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

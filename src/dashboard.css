@@ -4,7 +4,7 @@
 .dashboard-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding-top: 64px; /* 헤더 공간 확보 */
+    padding-top: 72px; /* 헤더 공간 확보 */
 }
 
 .main-header {

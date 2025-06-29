@@ -1,16 +1,18 @@
 // App.js
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import './App.css'; // 전역 스타일
-import Header from './Header'; // 헤더 컴포넌트 추가
+import LandingPage from './LandingPage';
 import Dashboard from './dashboard'; // 우리가 만든 대시보드를 불러옵니다.
 
 function App() {
-  // 이제 App.js는 헤더와 Dashboard를 보여줍니다.
   return (
-    <div className="App">
-      <Header />
-      <Dashboard />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
+    </Router>
   );
 }
 
