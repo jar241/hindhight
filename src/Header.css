@@ -1,52 +1,52 @@
 .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 0 40px;
+  height: 72px;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   z-index: 1000;
   box-sizing: border-box;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 28px;
-  border-bottom: 1px solid rgba(80, 80, 80, 0.1);
-  background-color: #ffffff;
 }
 
-.logo {
-  font-family: 'Lexend Deca', sans-serif;
-  font-weight: 900;
-  font-size: 20px;
-  text-transform: uppercase;
-  color: #000000;
+.header-logo {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2rem;
+  font-weight: 400;
 }
 
-.theme-toggle {
-  display: flex;
-  gap: 16px;
+.header-logo-svg {
+  height: 24px;
+  width: auto;
+  display: block;
 }
 
-.theme-button {
+.header-auth-buttons {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 4px;
-  border-radius: 8px;
-  background-color: transparent;
+  gap: 8px;
+}
+
+.header-btn {
   border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 16px;
+  font-family: 'Pretendard', sans-serif;
+  font-weight: 500;
   cursor: pointer;
+  transition: background 0.2s, color 0.2s;
 }
-
-.theme-button.active {
-  background-color: rgba(28, 28, 28, 0.05);
+.header-btn.login {
+  background: #fff;
+  color: #000;
+  border: 1px solid #e8e8e8;
 }
-
-.theme-button:hover {
-  background-color: rgba(28, 28, 28, 0.1);
-}
-
-.theme-button svg {
-  width: 20px;
-  height: 20px;
+.header-btn.signup {
+  background: #000;
+  color: #fff;
 } 

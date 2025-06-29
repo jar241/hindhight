@@ -1,5 +1,8 @@
 /* src/App.css */
 
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Manrope:wght@700&family=Roboto+Mono:wght@400;700&display=swap');
+/* Pretendard는 public/index.html의 CDN으로 import 필요 */
+
 /* ============================================= */
 /*       1. 디자인 시스템 토큰 (CSS 변수)       */
 /* ============================================= */
@@ -27,6 +30,9 @@
 
   /* Typography (동기화) */
   --font-primary: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+  --font-serif: 'Instrument Serif', serif;
+  --font-mono: 'Roboto Mono', 'Pretendard', monospace;
+  --font-title: 'Manrope', 'Pretendard', sans-serif;
   --font-size-brand-title: 24px;
   --font-weight-brand-title: 700;
   --font-size-card-title: 14px;
@@ -73,8 +79,12 @@
 /* ============================================= */
 body {
   margin: 0;
-  font-family: var(--font-primary), var(--font-korean);
+  font-family: var(--font-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-background);
+}
+
+code {
+  font-family: var(--font-mono);
 }

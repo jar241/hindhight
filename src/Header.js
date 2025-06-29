@@ -1,32 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './Header.css';
-import { ReactComponent as SunIcon } from './assets/icons/sun.svg';
-import { ReactComponent as MoonIcon } from './assets/icons/moon.svg';
+import { ReactComponent as Logo } from './assets/logo/logo.svg';
 
-const Header = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
+export default function Header() {
   return (
     <header className="header">
-      <div className="logo">
-      Hindsight
+      <div className="header-logo">
+        <Logo className="header-logo-svg" />
       </div>
-      <div className="theme-toggle">
-        <button 
-          className={`theme-button ${!isDarkMode ? 'active' : ''}`} 
-          onClick={() => setIsDarkMode(false)}
-        >
-          <SunIcon />
-        </button>
-        <button 
-          className={`theme-button ${isDarkMode ? 'active' : ''}`} 
-          onClick={() => setIsDarkMode(true)}
-        >
-          <MoonIcon />
-        </button>
+      <div className="header-auth-buttons">
+        <button className="header-btn login">Log in</button>
+        <button className="header-btn signup">Sign up</button>
       </div>
     </header>
   );
-};
-
-export default Header; 
+} 
