@@ -4,14 +4,23 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import './App.css'; // 전역 스타일
 import LandingPage from './LandingPage';
 import Dashboard from './dashboard'; // 우리가 만든 대시보드를 불러옵니다.
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
+import EmailVerificationPage from './pages/EmailVerificationPage';
+import { AuthProvider } from './AuthContext';
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/verify-email" element={<EmailVerificationPage />} />
+        </Routes>
+      </AuthProvider>
     </Router>
   );
 }

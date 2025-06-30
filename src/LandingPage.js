@@ -7,6 +7,11 @@ import { ReactComponent as DownloadIcon } from './assets/icons/downlod_icon.svg'
 import { ReactComponent as Placeholder } from './assets/img/placeholder.svg';
 import * as XLSX from 'xlsx';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
+import Modal from './components/Modal';
+
+const MODAL_TITLE = "잠깐만요! 로그인이 필요해요.";
+const MODAL_DESC = "이 기능을 사용하려면 로그인이 필요합니다. 계정이 없으시다면 무료로 가입해보세요.";
 
 function handleDownloadTemplate() {
   const data = [
@@ -29,12 +34,16 @@ function LoadingOverlay() {
   );
 }
 
-function FileUploadBox({ onFileUploaded }) {
+function FileUploadBox({ onFileUploaded, onRequireAuth }) {
   const inputRef = useRef();
   const [fileName, setFileName] = useState("");
   const [dragActive, setDragActive] = useState(false);
 
-  const handleBoxClick = () => {
+  const handleBoxClick = (e) => {
+    if (onRequireAuth) {
+      onRequireAuth();
+      return;
+    }
     inputRef.current.click();
   };
   const handleFileChange = (e) => {
@@ -88,7 +97,22 @@ function FileUploadBox({ onFileUploaded }) {
 export default function LandingPage() {
   const [uploaded, setUploaded] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
+  const { user, authLoading } = useAuth();
+
+  const modalActions = [
+    {
+      label: '로그인',
+      onClick: () => { setModalOpen(false); navigate('/login'); },
+    },
+    {
+      label: '회원가입',
+      onClick: () => { setModalOpen(false); navigate('/signup'); },
+      variant: 'primary',
+      autoFocus: true,
+    },
+  ];
 
   const steps = [
     {
@@ -99,7 +123,16 @@ export default function LandingPage() {
       number: 2,
       content: <>
         <span className="step-title">엑셀 템플릿 파일을 다운로드하세요.</span>
-        <button className="landing-btn secondary" onClick={handleDownloadTemplate}>
+        <button
+          className="landing-btn secondary"
+          onClick={e => {
+            if (!user && !authLoading) {
+              setModalOpen(true);
+              return;
+            }
+            handleDownloadTemplate();
+          }}
+        >
           <DownloadIcon className="download-icon" />
           템플릿 다운로드
         </button>
@@ -119,7 +152,10 @@ export default function LandingPage() {
       content: <>
         <span className="step-title">작성한 파일을 업로드하고 차트를 확인하세요.</span>
         <div className="landing-file-upload">
-          <FileUploadBox onFileUploaded={() => setUploaded(true)} />
+          <FileUploadBox
+            onFileUploaded={() => setUploaded(true)}
+            onRequireAuth={!user && !authLoading ? () => setModalOpen(true) : undefined}
+          />
           <button
             className="landing-btn cta"
             disabled={!uploaded || loading}
@@ -143,6 +179,13 @@ export default function LandingPage() {
       <Header />
       <div className="landing-root">
         {loading && <LoadingOverlay />}
+        <Modal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title={MODAL_TITLE}
+          desc={MODAL_DESC}
+          actions={modalActions}
+        />
         <main className="landing-main">
           <section className="landing-left-panel">
             <div className="landing-tagline">
