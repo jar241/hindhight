@@ -1,0 +1,52 @@
+.auth-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.18);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.auth-modal {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+  padding: 36px 32px 28px 32px;
+  min-width: 320px;
+  max-width: 90vw;
+  text-align: center;
+}
+.auth-modal h2 {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: #101828;
+}
+.auth-modal p {
+  font-size: 16px;
+  color: #475467;
+  margin-bottom: 28px;
+}
+.auth-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.auth-modal-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  background: #E5E5E5;
+  color: #222;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.auth-modal-btn.primary {
+  background: #000;
+  color: #fff;
+}
+.auth-modal-btn:hover {
+  opacity: 0.92;
+} 
