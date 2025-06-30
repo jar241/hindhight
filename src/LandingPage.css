@@ -1,25 +1,47 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 .landing-root {
   font-family: 'Pretendard', 'sans-serif';
   background: #fbfbfb;
   min-height: 100vh;
+  overflow: hidden;
   color: #000;
-  padding-top: 72px;
 }
 
 .landing-main {
   display: flex;
+  align-items: flex-start; /* 세로축 시작점 정렬 */
   overflow: hidden;
+  min-height: 0;
+  padding-top: 72px;
 }
 
+.landing-left-panel,
+.landing-right-panel {
+
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 64px 24px;
+
+}
+
+
+
+ /* 왼쪽 패널*/
 .landing-left-panel {
   flex: 2;
   background: #fbfbfb;
-  padding: 64px 24px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start;
 }
+
+
 .landing-tagline {
   text-align: center;
   width: 100%;
@@ -32,7 +54,6 @@
   margin: 0 0 24px 0; /* 위쪽 margin 제거 */
   font-weight: 400;
   line-height: 1;
-
 }
 .landing-desc {
   font-family: 'Pretendard', sans-serif;
@@ -44,9 +65,11 @@
   margin: 0 auto;        /* 가운데 정렬 (선택) */
   word-break: keep-all;  /* 한글 줄바꿈 자연스럽게 */
 }
+
+
+ /* 차트 */
 .landing-chart-mini {
     max-width: 704px;   /* Figma 기준 등 원하는 값 */
-    height: auto;      /* 필요시 */
     margin: 0 auto;
     background: #fff;
     display: flex;
@@ -67,18 +90,20 @@
 
 
 
-  /* 오른쪽 */
+  /* 오른쪽 패널*/
 .landing-right-panel {
   flex: 1;
   background: #fff;
-  padding: 64px 24px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   max-width: 480px;
   width: 100%;
+
 }
 
+
+
+/* 스텝 */
 .landing-steps {
   list-style: none;
   padding: 0;
@@ -128,15 +153,24 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  margin-bottom: 64px;
+  margin-bottom: 56px;
 }
 .step-title {
   font-size: 16px;
   font-family: 'Pretendard', sans-serif;
   font-weight: 500;
 }
+/* 스텝 중에 커스터마이징한 것들 */
+.landing-step:last-child .step-content {
+    margin-bottom: 0;
+  }
+
+  .landing-step:first-child {
+    height: 48px;       /* 필요시 고정 */
+  }
 
 
+/* 다운로드 */
 .landing-btn.secondary {
     background: #fff;
     border: 1px solid #d3d3d3;
@@ -145,8 +179,9 @@
     font-weight: 600;
     padding: 12px 20px;
     border-radius: 8px;
-
+    cursor: pointer;
   }
+
   .download-icon {
       width: 16px;
       height: 16px;
@@ -155,8 +190,9 @@
       display: inline-block;
     } 
 
+    
 
-
+/* 샘플 테이블 */
 .landing-table-sample {
   margin-top: 12px;
   border-radius: 8px;
@@ -167,6 +203,8 @@
 }
 
 
+
+/* 업로드 */
 .landing-file-upload {
   margin-top: 12px;
 }
@@ -178,10 +216,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 .file-upload-icon {
   font-size: 2rem;
+  margin-bottom: 2px;
+
 }
 .file-upload-action {
   font-size: 14px;
@@ -193,6 +233,59 @@
   color: #475467;
 }
 
+
+
+
+
+
+.loading-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.8);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.spinner {
+  width: 48px; height: 48px;
+  border: 5px solid #e0e0e0;
+  border-top: 5px solid #007AFF;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+.loading-message {
+  font-size: 18px;
+  color: #222;
+  font-weight: 500;
+}
+
+.landing-btn.cta {
+  width: 100%;
+  font-weight: 00;
+  font-size: 14px;
+  padding: 12px 0;
+  margin-top: 8px;
+  background: #000000;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.landing-btn.cta:disabled {
+  background: #e5e5e5;
+  color: #aaa;
+  cursor: not-allowed;
+}
+.landing-btn.cta:hover:not(:disabled) {
+  background: #252525;
+}
 
 
 @media (max-width: 480px) {
