@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import './LandingPage.css';
 import Header from './Header';
 import { ReactComponent as FileUploadIcon } from './assets/icons/file-upload-icon.svg';
@@ -9,15 +9,16 @@ import * as XLSX from 'xlsx';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import Modal from './components/Modal';
+import supabase from './supabaseClient';
 
 const MODAL_TITLE = "잠깐만요! 로그인이 필요해요.";
 const MODAL_DESC = "이 기능을 사용하려면 로그인이 필요합니다. 계정이 없으시다면 무료로 가입해보세요.";
 
 function handleDownloadTemplate() {
   const data = [
-    ["Ticker", "Type", "Date", "Price", "Share"],
-    ["NKE", "Buy", "2025-06-10", 170.50, 5],
-    ["NKE", "Sell", "2025-06-21", 165.50, 2],
+    ["Ticker", "Type", "Date", "Price", "Share", "Journal"],
+    ["NKE", "Buy", "2025-06-10", 170.50, 5, ""],
+    ["NKE", "Sell", "2025-06-21", 165.50, 2, ""],
   ];
   const ws = XLSX.utils.aoa_to_sheet(data);
   const wb = XLSX.utils.book_new();
@@ -94,12 +95,19 @@ function FileUploadBox({ onFileUploaded, onRequireAuth }) {
   );
 }
 
+// 엑셀 시리얼 날짜를 YYYY-MM-DD 문자열로 변환
+function excelDateToString(excelDate) {
+  const date = new Date(Math.round((excelDate - 25569) * 86400 * 1000));
+  return date.toISOString().split('T')[0];
+}
+
 export default function LandingPage() {
   const [uploaded, setUploaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
   const { user, authLoading } = useAuth();
+  const [redirectPending, setRedirectPending] = useState(true);
 
   const modalActions = [
     {
@@ -113,6 +121,90 @@ export default function LandingPage() {
       autoFocus: true,
     },
   ];
+
+  // 거래내역 Supabase 업로드 함수 (모든 ticker에 대해 delete → insert)
+  async function uploadTradesToSupabase(trades, userId) {
+    if (!trades.length) return;
+    // ticker별로 그룹핑
+    const tickers = [...new Set(trades.map(t => t.ticker))];
+    for (const ticker of tickers) {
+      await supabase
+        .from('trades')
+        .delete()
+        .eq('user_id', userId)
+        .eq('ticker', ticker);
+      const tickerTrades = trades.filter(t => t.ticker === ticker);
+      if (tickerTrades.length > 0) {
+        const { error } = await supabase
+          .from('trades')
+          .insert(tickerTrades.map(t => ({ ...t, user_id: userId })));
+        if (error) throw error;
+      }
+    }
+  }
+
+  // 파일 업로드 후 파싱 및 Supabase 저장
+  const handleFileUploaded = async (file) => {
+    if (!user) {
+      setModalOpen(true);
+      return;
+    }
+    try {
+      setLoading(true);
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      let trades = XLSX.utils.sheet_to_json(sheet);
+      // 컬럼명 통일 및 날짜 변환
+      trades = trades.map(t => {
+        let dateVal = t.Date || t.date;
+        if (typeof dateVal === 'number') {
+          dateVal = excelDateToString(dateVal);
+        }
+        // UTC 기준으로 변환
+        let dateUTC = dateVal ? new Date(dateVal + 'T00:00:00Z') : null;
+        return {
+          ticker: t.Ticker || t.ticker,
+          type: (t.Type || t.type || '').toLowerCase(),
+          date: dateUTC ? dateUTC.toISOString().slice(0, 10) : '', // YYYY-MM-DD
+          price: Number(t.Price || t.price),
+          share: Number(t.Share || t.share),
+          journal: t.Journal || t.journal || '',
+        };
+      });
+      await uploadTradesToSupabase(trades, user.id);
+      setUploaded(true);
+      setLoading(false);
+      alert('거래내역이 저장되었습니다!');
+    } catch (e) {
+      setLoading(false);
+      alert('업로드 실패: ' + (e.message || e.error_description || ''));
+    }
+  };
+
+  // 로그인 후 거래 데이터 있으면 대시보드로 이동
+  useEffect(() => {
+    async function checkAndRedirect() {
+      if (authLoading) return; // 아직 인증 확인 중이면 대기
+      if (user) {
+        setRedirectPending(true);
+        const { count, error } = await supabase
+          .from('trades')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+        if (!error && count > 0) {
+          navigate('/dashboard');
+        } else {
+          setRedirectPending(false);
+        }
+      } else {
+        setRedirectPending(false);
+      }
+    }
+    checkAndRedirect();
+  }, [user, authLoading, navigate]);
+
+  if (redirectPending) return null;
 
   const steps = [
     {
@@ -153,7 +245,7 @@ export default function LandingPage() {
         <span className="step-title">작성한 파일을 업로드하고 차트를 확인하세요.</span>
         <div className="landing-file-upload">
           <FileUploadBox
-            onFileUploaded={() => setUploaded(true)}
+            onFileUploaded={handleFileUploaded}
             onRequireAuth={!user && !authLoading ? () => setModalOpen(true) : undefined}
           />
           <button
