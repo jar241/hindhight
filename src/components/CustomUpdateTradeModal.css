@@ -1,0 +1,169 @@
+.custom-update-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(10, 13, 19, 0.6);
+  z-index: 30000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-update-modal-box {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(16, 24, 40, 0.18);
+  padding: 0;
+  min-width: 480px;
+  max-width: 98vw;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-update-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #888;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s;
+  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.custom-update-modal-close:hover {
+  color: #222;
+  background: #f2f4f7;
+}
+
+.custom-update-modal-title {
+  font-family: 'Pretendard', 'sans-serif';
+  font-size: 18px;
+  font-weight: 700;
+  color: #101828;
+  margin-top: 0;
+  padding: 24px 24px 0 24px;
+  text-align: left;
+}
+.custom-update-modal-desc {
+  font-family: 'Pretendard', 'sans-serif';
+  font-size: 14px;
+  line-height: 1.4;
+  color: #475467;
+  margin-bottom: 24px;
+  margin-top: 8px;
+  padding: 0 24px;
+  text-align: left;
+}
+
+.custom-update-modal-upload-box {
+  border: 1.5px solid #eaecf0;
+  border-radius: 12px;
+  background: #fff;
+  padding: 24px 0;
+  margin: 0px 24px 0 24px;
+  text-align: center;
+  transition: border 0.2s;
+  box-sizing: border-box;
+  min-height: 144px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+}
+.custom-update-modal-upload-box.error {
+  border: 1.5px solid #ff4d4f;
+}
+.custom-update-modal-fileicon {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 28px;
+}
+.custom-update-modal-filename {
+  font-weight: 600;
+  font-size: 14px;
+  color: #000;
+  margin-bottom: 4px;
+}
+.custom-update-modal-upload-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #000;
+  margin-bottom: 4px;
+}
+.custom-update-modal-upload-desc {
+  font-size: 12px;
+  color: #475467;
+  margin-top: 2px;
+  text-align: center;
+  min-height: 16px;
+}
+.custom-update-modal-upload-desc.error {
+  color: #ff4d4f;
+}
+
+.custom-update-modal-actions {
+  display: flex;
+  gap: 8px;
+  padding: 24px;
+}
+.custom-update-modal-btn {
+  flex: 1;
+  padding: 12px 0;
+  border-radius: 8px;
+  font-family: 'Pretendard', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.custom-update-modal-btn.cancel {
+  border: 1.5px solid #d0d5dd;
+  background: #fff;
+  color: #344054;
+}
+.custom-update-modal-btn.update {
+  border: 1.5px solid #eaecf0;
+  background: #111;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.custom-update-modal-btn.update:disabled {
+  background: #f2f4f7;
+  color: #98a2b3;
+  cursor: not-allowed;
+  border: 1.5px solid #eaecf0;
+}
+
+.custom-update-modal-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #fff;
+  border-top: 2px solid #98a2b3;
+  border-radius: 50%;
+  animation: custom-update-modal-spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin: 0 auto;
+}
+@keyframes custom-update-modal-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+} 
