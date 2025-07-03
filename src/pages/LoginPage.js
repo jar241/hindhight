@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../LandingPage.css';
 import './SignupPage.css';
 import Header from '../Header';
-import { supabase } from '../supabaseClient';
+import supabase from '../supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 import { ReactComponent as Placeholder } from '../assets/img/placeholder.svg';
 import googleIcon from '../assets/img/google_icon.png';
@@ -25,7 +25,7 @@ export default function LoginPage() {
     
     setLoading(true);
     setError('');
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -33,7 +33,22 @@ export default function LoginPage() {
     if (error) {
       setError(error.message);
     } else {
-      navigate('/');
+      // 로그인 성공: 거래 데이터 유무에 따라 분기
+      const user = data.user;
+      if (user) {
+        // trades 테이블에서 user_id가 내 id인 row가 1개라도 있으면 대시보드로
+        const { data: trades, error: tradesError } = await supabase
+          .from('trades')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+        if (!tradesError && trades && trades.length > 0) {
+          navigate('/dashboard');
+        } else {
+          navigate('/');
+        }
+      } else {
+        navigate('/');
+      }
     }
   };
 

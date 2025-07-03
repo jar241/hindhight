@@ -1,7 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import './LandingPage.css';
 import Header from './Header';
-import { ReactComponent as FileUploadIcon } from './assets/icons/file-upload-icon.svg';
+import { ReactComponent as FileUploadIcon } from './assets/icons/file-upload-icon-before.svg';
+import { ReactComponent as FileUploadIconAfter } from './assets/icons/file-upload-icon-after.svg';
 import { ReactComponent as TableSample } from './assets/img/table-sample.svg';
 import { ReactComponent as DownloadIcon } from './assets/icons/downlod_icon.svg';
 import { ReactComponent as Placeholder } from './assets/img/placeholder.svg';
@@ -39,6 +40,7 @@ function FileUploadBox({ onFileUploaded, onRequireAuth }) {
   const inputRef = useRef();
   const [fileName, setFileName] = useState("");
   const [dragActive, setDragActive] = useState(false);
+  const [error, setError] = useState("");
 
   const handleBoxClick = (e) => {
     if (onRequireAuth) {
@@ -47,10 +49,16 @@ function FileUploadBox({ onFileUploaded, onRequireAuth }) {
     }
     inputRef.current.click();
   };
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
+    setError("");
     if (e.target.files && e.target.files[0]) {
-      setFileName(e.target.files[0].name);
-      onFileUploaded && onFileUploaded(e.target.files[0]);
+      const file = e.target.files[0];
+      setFileName(file.name);
+      try {
+        await onFileUploaded && onFileUploaded(file, setError);
+      } catch (err) {
+        setError(err.message || "업로드 중 오류가 발생했습니다.");
+      }
     }
   };
   const handleDragOver = (e) => {
@@ -61,18 +69,24 @@ function FileUploadBox({ onFileUploaded, onRequireAuth }) {
     e.preventDefault();
     setDragActive(false);
   };
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
     setDragActive(false);
+    setError("");
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFileName(e.dataTransfer.files[0].name);
-      onFileUploaded && onFileUploaded(e.dataTransfer.files[0]);
+      const file = e.dataTransfer.files[0];
+      setFileName(file.name);
+      try {
+        await onFileUploaded && onFileUploaded(file, setError);
+      } catch (err) {
+        setError(err.message || "업로드 중 오류가 발생했습니다.");
+      }
     }
   };
 
   return (
     <div
-      className={`file-upload-box${dragActive ? ' drag-active' : ''}`}
+      className={`file-upload-box${dragActive ? ' drag-active' : ''}${error ? ' file-upload-error' : ''}`}
       onClick={handleBoxClick}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -87,10 +101,21 @@ function FileUploadBox({ onFileUploaded, onRequireAuth }) {
         onChange={handleFileChange}
         accept=".xlsx,.xls,.csv"
       />
-      <span className="file-upload-icon"><FileUploadIcon width={39} height={40} /></span>
-      <span className="file-upload-action">파일 업로드</span>
-      <span className="file-upload-instructions">파일 선택 혹은 여기로 끌어다 놓으세요</span>
-      {fileName && <div className="file-upload-filename">{fileName}</div>}
+      <span className="file-upload-icon">
+        {fileName ? <FileUploadIconAfter width={40} height={40} /> : <FileUploadIcon width={39} height={40} />}
+      </span>
+      {fileName ? (
+        <>
+          <div className="file-upload-filename file-upload-filename-bold">{fileName}</div>
+          {error && <div className="file-upload-error-message">{error}</div>}
+        </>
+      ) : (
+        <>
+          <span className="file-upload-action">파일 업로드</span>
+          <span className="file-upload-instructions">CSV, XLSX, XLS 파일 선택 혹은 여기로 끌어다 놓으세요</span>
+          {error && <div className="file-upload-error-message">{error}</div>}
+        </>
+      )}
     </div>
   );
 }
@@ -105,6 +130,7 @@ export default function LandingPage() {
   const [uploaded, setUploaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [exceedModalOpen, setExceedModalOpen] = useState(false);
   const navigate = useNavigate();
   const { user, authLoading } = useAuth();
   const [redirectPending, setRedirectPending] = useState(true);
@@ -144,9 +170,16 @@ export default function LandingPage() {
   }
 
   // 파일 업로드 후 파싱 및 Supabase 저장
-  const handleFileUploaded = async (file) => {
+  const handleFileUploaded = async (file, setError) => {
     if (!user) {
       setModalOpen(true);
+      return;
+    }
+    // 파일 확장자 체크
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!["csv", "xlsx", "xls"].includes(ext)) {
+      setError && setError('CSV, XLSX, XLS 파일만 업로드 가능해요');
+      setUploaded(false);
       return;
     }
     try {
@@ -172,13 +205,27 @@ export default function LandingPage() {
           journal: t.Journal || t.journal || '',
         };
       });
+      // 무료 플랜 종목 2개 제한 체크
+      const tickersInFile = [...new Set(trades.map(t => t.ticker))];
+      // 기존 종목 fetch
+      const { data: existing, error: fetchError } = await supabase
+        .from('trades')
+        .select('ticker')
+        .eq('user_id', user.id);
+      const existingTickers = existing ? Array.from(new Set(existing.map(t => t.ticker))) : [];
+      const totalTickers = Array.from(new Set([...existingTickers, ...tickersInFile])).length;
+      if (totalTickers > 2) {
+        setLoading(false);
+        setError && setError('무료 플랜에서는 최대 2종목까지만 업로드할 수 있습니다.');
+        return;
+      }
       await uploadTradesToSupabase(trades, user.id);
       setUploaded(true);
       setLoading(false);
-      alert('거래내역이 저장되었습니다!');
+      setError && setError("");
     } catch (e) {
       setLoading(false);
-      alert('업로드 실패: ' + (e.message || e.error_description || ''));
+      setError && setError('업로드 실패: ' + (e.message || e.error_description || ''));
     }
   };
 
@@ -233,9 +280,57 @@ export default function LandingPage() {
     {
       number: 3,
       content: <>
-        <span className="step-title">파일에 당신의 매매 내역을 입력하세요.</span>
+        <span className="step-title"> 파일에 모든 주식 거래 내역을 입력하세요. 단 무료 사용자는 최대 2종목만 입력 가능해요. </span>
         <div className="landing-table-sample">
-          <TableSample style={{ width: '100%', height: '100%' }} />
+          <div
+            className="custom-modal-table-wrapper"
+            style={{
+              margin: 0,
+              padding: '0px 0 0 0',
+              background: 'none',
+              border: '1px solid #EAECF0',
+              borderRadius: '8px'
+            }}
+          >
+            <table className="custom-modal-table">
+              <thead>
+                <tr>
+                  <th>Ticker</th>
+                  <th>Type</th>
+                  <th>Date</th>
+                  <th>Price</th>
+                  <th>Share</th>
+                  <th>Journal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>NKE</td>
+                  <td>Buy</td>
+                  <td>2025-06-10</td>
+                  <td>$63.50</td>
+                  <td>5</td>
+                  <td>떨어진거 같아서 일단 질러봄</td>
+                </tr>
+                <tr>
+                  <td>O</td>
+                  <td>Sell</td>
+                  <td>2025-06-21</td>
+                  <td>$61.80</td>
+                  <td>2</td>
+                  <td>월세 받는것 같지만 요즘 뒤숭숭</td>
+                </tr>
+                <tr>
+                  <td>PLTR</td>
+                  <td>Buy</td>
+                  <td>2025-06-21</td>
+                  <td>$142.80</td>
+                  <td>2</td>
+                  <td>더 오를거 같아서 추매</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </>,
     },
@@ -277,6 +372,15 @@ export default function LandingPage() {
           title={MODAL_TITLE}
           desc={MODAL_DESC}
           actions={modalActions}
+        />
+        <Modal
+          open={exceedModalOpen}
+          onClose={() => setExceedModalOpen(false)}
+          title="종목 수를 다시 확인해주세요."
+          desc="무료 플랜에서는 2개 종목까지만 가능해요. 어떤 종목을 먼저 관리해볼까요?"
+          actions={[
+            { label: '확인', onClick: () => setExceedModalOpen(false), variant: 'primary', autoFocus: true }
+          ]}
         />
         <main className="landing-main">
           <section className="landing-left-panel">

@@ -50,3 +50,116 @@
 .action-btn {
   border-radius: var(--radius-pill);
 }
+
+/* 주가 정보 상단 바 */
+.chart-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0 0 24px 0;
+  margin-bottom: 0;
+  width: 100%;
+}
+.chart-top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.chart-stock-info-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+}
+.chart-stock-header-row {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  margin-bottom: 6px;
+}
+.chart-stock-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 1px solid #e7e7e7;
+  object-fit: contain;
+}
+.chart-stock-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222;
+  margin-right: 0;
+  align-self: center;
+}
+.chart-stock-dropdown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  width: 24px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.chart-stock-dropdown svg {
+  display: block;
+  margin: 0 auto;
+}
+.chart-stock-price {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+.chart-stock-change-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+
+}
+.chart-stock-change-label {
+  color: #666;
+  font-size: 14px;
+  font-weight: 400;
+}
+.chart-stock-change-value.up {
+  color: #007aff;
+  font-size: 14px;
+  font-weight: 600;
+}
+.chart-stock-change-value.down {
+  color: #ff3b30;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.chart-top-bar-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+/* 기존 .time-selector, .time-option 등은 그대로 사용 */
+
+@media (max-width: 600px) {
+  .chart-top-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .chart-top-bar-right {
+    width: 100%;
+    margin-top: 12px;
+  }
+  .time-selector {
+    width: 100%;
+    justify-content: space-between;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}

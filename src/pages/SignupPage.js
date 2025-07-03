@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../LandingPage.css';
 import './SignupPage.css';
 import Header from '../Header';
-import { supabase } from '../supabaseClient';
+import supabase from '../supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 import { ReactComponent as Placeholder } from '../assets/img/placeholder.svg';
 import googleIcon from '../assets/img/google_icon.png';

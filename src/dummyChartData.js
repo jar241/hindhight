@@ -244,7 +244,7 @@ export function getDummyTrades(timeRange, chartData, numTrades = 10) {
       type,
       price: curr.y,
       shares: 50,
-      note: `${type === 'buy' ? 'Bought' : 'Sold'} 50 shares at $${curr.y.toFixed(2)}`
+      journal: `${type === 'buy' ? 'Bought' : 'Sold'} 50 shares at $${curr.y.toFixed(2)}`
     });
   }
   return trades;

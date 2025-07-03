@@ -135,15 +135,14 @@ function customTooltipHandler(context) {
     chart.canvas.parentNode.appendChild(labelDiv);
   }
   if (tooltip && tooltip.dataPoints && tooltip.dataPoints.length > 0) {
-    const dp = tooltip.dataPoints[0];
-    const isTradePoint = dp.dataset.label === 'My Trades' && dp.raw;
-    if (isTradePoint) {
-      // 거래내역 툴팁: crosshair와 동일한 폰트/색상, 세로선 항상 보이게, 배경/글자색 반전
-      const trade = dp.raw;
+    // My Trades가 있으면 무조건 그걸 우선적으로 띄움
+    const tradePoint = tooltip.dataPoints.find(dp => dp.dataset.label === 'My Trades' && dp.raw);
+    if (tradePoint) {
+      const trade = tradePoint.raw;
       const typeText = trade.type === 'buy' ? '매수' : '매도';
-      let date = dp.label || '';
-      if (dp.parsed.x) {
-        const d = new Date(dp.parsed.x);
+      let date = tradePoint.label || '';
+      if (tradePoint.parsed.x) {
+        const d = new Date(tradePoint.parsed.x);
         const pad = n => n.toString().padStart(2, '0');
         if (date.length > 10) {
           date = `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}.${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -154,7 +153,7 @@ function customTooltipHandler(context) {
       labelDiv.innerHTML = `
         <div style='font-size:16px;font-weight:700;color:#fff;font-family:Roboto Mono, monospace;'>${typeText} $${trade.price} x ${trade.shares}주</div>
         <div style='font-size:12px;font-weight:500;color:#fff;font-family:Roboto Mono, monospace;'>${date}</div>
-        <div style='font-size:12px;color:#fff;margin-top:2px;font-family:Roboto Mono, monospace;'>${trade.note || ''}</div>
+        <div style='font-size:12px;color:#fff;margin-top:2px;font-family:Roboto Mono, monospace;'>${trade.journal || ''}</div>
       `;
       labelDiv.style.display = 'block';
       labelDiv.style.left = `${tooltip.caretX}px`;
@@ -162,30 +161,32 @@ function customTooltipHandler(context) {
       labelDiv.style.background = '#222';
       labelDiv.style.color = '#fff';
       lastCrosshair = { caretX: tooltip.caretX, price: `${typeText} $${trade.price} x ${trade.shares}주`, date, show: true };
-    } else {
-      // crosshair 툴팁만 노출
-      const price = typeof dp.parsed.y === 'number' ? `$${dp.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
-      let date = dp.label || '';
-      if (dp.parsed.x) {
-        const d = new Date(dp.parsed.x);
-        const pad = n => n.toString().padStart(2, '0');
-        if (date.length > 10) {
-          date = `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}.${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        } else {
-          date = `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
+      return;
+      }
+    // 없으면 주가 툴팁
+    const dp = tooltip.dataPoints[0];
+    const price = typeof dp.parsed.y === 'number' ? `$${dp.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
+    let date = dp.label || '';
+    if (dp.parsed.x) {
+      const d = new Date(dp.parsed.x);
+      const pad = n => n.toString().padStart(2, '0');
+      if (date.length > 10) {
+        date = `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}.${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      } else {
+        date = `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
         }
       }
-      labelDiv.innerHTML = `
-        <div style='font-size:16px;font-weight:700;color:#00000;font-family:Roboto Mono, monospace;'>${price}</div>
-        <div style='font-size:12px;font-weight:500;color:#66666;font-family:Roboto Mono, monospace;'>${date}</div>
-      `;
-      labelDiv.style.display = 'block';
-      labelDiv.style.left = `${tooltip.caretX}px`;
-      labelDiv.style.transform = 'translate(-50%, 0)';
-      labelDiv.style.background = 'rgba(255,255,255,0.95)';
-      labelDiv.style.color = '#222';
-      lastCrosshair = { caretX: tooltip.caretX, price, date, show: true };
-    }
+    labelDiv.innerHTML = `
+      <div style='font-size:16px;font-weight:700;color:#00000;font-family:Roboto Mono, monospace;'>${price}</div>
+      <div style='font-size:12px;font-weight:500;color:#66666;font-family:Roboto Mono, monospace;'>${date}</div>
+    `;
+    labelDiv.style.display = 'block';
+    labelDiv.style.left = `${tooltip.caretX}px`;
+    labelDiv.style.transform = 'translate(-50%, 0)';
+    labelDiv.style.background = 'rgba(255,255,255,0.95)';
+    labelDiv.style.color = '#222';
+    lastCrosshair = { caretX: tooltip.caretX, price, date, show: true };
+    return;
   } else {
     // 마우스가 차트 밖으로 나가도 crosshair label은 남김 (숨기지 않음)
     if (lastCrosshair.show) {
@@ -247,6 +248,8 @@ function ChartComponent({ symbol = 'NKE', timeRange, useDummy = false, dummyData
             pointBorderColor: '#fff',
             pointBorderWidth: 1, // 추가: 테두리 두께
             pointRadius: 4.5,
+            pointHoverRadius: 7, // 마우스 hover 시 hit 영역 확대
+            pointHitRadius: 10,  // 클릭/hover hit 영역 확대
             pointStyle: 'circle',
             showLine: false,
             order: 99,
@@ -314,7 +317,10 @@ function ChartComponent({ symbol = 'NKE', timeRange, useDummy = false, dummyData
               data: trades,
               pointBackgroundColor: trades.map(trade => trade.type === 'buy' ? '#000000' : '#A8C5DA'),
               pointBorderColor: '#fff',
-              pointRadius: 4,
+              pointBorderWidth: 1, // 추가: 테두리 두께
+              pointRadius: 4.5,
+              pointHoverRadius: 7, // 마우스 hover 시 hit 영역 확대
+              pointHitRadius: 10,  // 클릭/hover hit 영역 확대
               pointStyle: 'circle',
               showLine: false,
               order: 99,
@@ -383,7 +389,7 @@ function ChartComponent({ symbol = 'NKE', timeRange, useDummy = false, dummyData
     maintainAspectRatio: false,
     animation: false,
     interaction: {
-      mode: 'nearest', // 거래내역 점에 가까울 때만 해당 툴팁이 뜨고, 그 외에는 crosshair 툴팁
+      mode: 'nearest',
       intersect: false,
       axis: 'x',
     },
@@ -414,7 +420,7 @@ function ChartComponent({ symbol = 'NKE', timeRange, useDummy = false, dummyData
               font: { family: 'Roboto Mono', weight: 'bold', size: 12 },
               padding: { left: 8, right: 8, top: 4, bottom: 4 },
               cornerRadius: 6,
-            },
+      },
           }
         }
       } : undefined,
@@ -484,7 +490,7 @@ function ChartComponent({ symbol = 'NKE', timeRange, useDummy = false, dummyData
 
   return (
     <div style={{ position: 'relative', height: '100%' }}>
-      <div className="chart-highlow" style={{ display: 'flex', gap: 16, marginBottom: 8, fontSize: 14, color: 'var(--color-text-muted)' }}>
+      <div className="chart-highlow" style={{ display: 'flex', gap: 16, marginBottom: 8, fontSize: 12, color: 'var(--color-text-muted)' }}>
         {high !== null && <span>최고가: ${high.toFixed(2)}</span>}
         {low !== null && <span>최저가: ${low.toFixed(2)}</span>}
       </div>

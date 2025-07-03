@@ -1,0 +1,162 @@
+.custom-pricing-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(10, 13, 19, 0.6);
+  z-index: 30000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.custom-pricing-modal-box {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(16, 24, 40, 0.18);
+  padding: 0;
+  min-width: 620px;
+  max-width: 98vw;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+.custom-pricing-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #888;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s;
+  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.custom-pricing-modal-close:hover {
+  color: #222;
+  background: #f2f4f7;
+}
+.custom-pricing-modal-title {
+  font-family: 'Pretendard', 'sans-serif';
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 0;
+  color: #101828;
+  margin-top: 0;
+  padding: 24px 24px 0 24px;
+}
+.custom-pricing-modal-desc {
+  font-family: 'Pretendard', 'sans-serif';
+  font-size: 14px;
+  color: #475467;
+  margin-bottom: 24px;
+  margin-top: 8px;
+  padding: 0 24px;
+}
+.custom-pricing-modal-cards-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  justify-content: space-between;
+  padding: 0 24px;
+
+}
+.custom-pricing-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 2px solid #eaecf0;
+  box-shadow: none;
+  padding: 20px 20px 20px 20px;
+  min-width: 286px;
+  max-width: 286px;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+}
+.custom-pricing-card.free {
+  border: 2px solid #eaecf0;
+}
+.custom-pricing-card.pro {
+  border: 2px solid #000;
+}
+.custom-pricing-card-title {
+  font-family: 'Pretendard', 'sans-serif';
+  font-size: 24px;
+  font-weight: 700;
+  color: #101828;
+  margin-bottom: 4px;
+}
+.custom-pricing-card-sub {
+  font-family: 'Pretendard', 'sans-serif';
+  font-size: 16px;
+  font-weight: 600;
+  color: #101828;
+  margin-bottom: 16px;
+}
+.custom-pricing-card-detail {
+  font-family: 'Pretendard', 'sans-serif';
+  font-size: 14px;
+  color: #475467;
+  margin-bottom: 8px;
+}
+
+.custom-pricing-modal-actions-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px 24px 24px;
+}
+.custom-pricing-modal-actions-left,
+.custom-pricing-modal-actions-right {
+  display: flex;
+  gap: 8px;
+}
+.custom-pricing-modal-btn {
+  padding: 0 24px;
+  min-width: 92px;
+  height: 44px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: 'Pretendard', 'sans-serif';
+  font-weight: 600;
+  border: 1.5px solid #d0d5dd;
+  background: #fff;
+  color: #344054;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.custom-pricing-modal-btn.inquiry {
+  border: 1.5px solid #d0d5dd;
+  background: #fff;
+  color: #344054;
+}
+.custom-pricing-modal-btn.cancel {
+  border: 1.5px solid #d0d5dd;
+  background: #fff;
+  color: #344054;
+}
+.custom-pricing-modal-btn.subscribe {
+  border: 1.5px solid #000000;
+  background: #000;
+  color: #fff;
+}
+.custom-pricing-modal-btn:active {
+  opacity: 0.92;
+}
+.custom-pricing-modal-divider {
+  width: 100%;
+  height: 1px;
+  background: #eaecf0;
+  margin: 0 0 24px 0;
+} 
