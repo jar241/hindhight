@@ -211,6 +211,7 @@ function ChartComponent({ symbol = 'NKE', timeRange, useDummy = false, dummyData
   const [chartData, setChartData] = useState({ datasets: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [livePriceData, setLivePriceData] = useState(null); // 실시간 데이터 상태
 
   // 거래내역은 그대로 사용
   const trades = allTrades || [];
@@ -257,6 +258,111 @@ function ChartComponent({ symbol = 'NKE', timeRange, useDummy = false, dummyData
         ]
       });
       setIsLoading(false);
+      return;
+    }
+    // 실시간 데이터 fetch: priceData prop이 없고 useDummy=false일 때 symbol로 fetch
+    if (!useDummy && symbol) {
+      setIsLoading(true);
+      setError(null);
+      fetchStockData(symbol)
+        .then(data => {
+          // Alpha Vantage 응답 파싱
+          const ts = data['Time Series (Daily)'];
+          if (!ts) throw new Error('실시간 데이터 없음');
+          // 날짜 내림차순 → 오름차순 변환
+          const parsed = Object.entries(ts)
+            .map(([date, val]) => ({
+              x: new Date(date),
+              y: parseFloat(val['4. close'])
+            }))
+            .sort((a, b) => a.x - b.x);
+          setLivePriceData(parsed);
+          setChartData({
+            datasets: [
+              {
+                label: symbol + ' Stock Price',
+                data: parsed,
+                borderColor: lineColor,
+                borderWidth: 1.2,
+                tension: 0,
+                pointRadius: 0,
+                fill: false,
+                order: 1,
+              },
+              {
+                label: 'My Trades',
+                type: 'scatter',
+                data: trades,
+                pointBackgroundColor: trades.map(trade => trade.type === 'buy' ? '#000000' : '#A8C5DA'),
+                pointBorderColor: '#fff',
+                pointBorderWidth: 1,
+                pointRadius: 4.5,
+                pointHoverRadius: 7,
+                pointHitRadius: 10,
+                pointStyle: 'circle',
+                showLine: false,
+                order: 99,
+              }
+            ]
+          });
+          setIsLoading(false);
+        })
+        .catch(e => {
+          // 실시간 데이터 실패 시 CSV fallback
+          const csvFile = symbol.toUpperCase() === 'O' ? '/o_stock_data.csv' : '/nike_stock_data.csv';
+          fetch(process.env.PUBLIC_URL + csvFile)
+            .then(response => {
+              if (!response.ok) throw new Error('CSV 파일이 없습니다.');
+              return response.text();
+            })
+            .then(text => {
+              const lines = text.split('\n').filter(Boolean);
+              const header = lines[0].split(',');
+              const dateIdx = 0;
+              const priceIdx = 1;
+              const dataLines = lines.slice(1);
+              const parsed = dataLines.map(line => {
+                const cols = line.split(',');
+                return {
+                  x: new Date(cols[dateIdx]),
+                  y: parseFloat(cols[priceIdx])
+                };
+              }).filter(d => !isNaN(d.x) && !isNaN(d.y));
+              setChartData({
+                datasets: [
+                  {
+                    label: symbol + ' Stock Price',
+                    data: parsed,
+                    borderColor: lineColor,
+                    borderWidth: 1.2,
+                    tension: 0,
+                    pointRadius: 0,
+                    fill: false,
+                    order: 1,
+                  },
+                  {
+                    label: 'My Trades',
+                    type: 'scatter',
+                    data: trades,
+                    pointBackgroundColor: trades.map(trade => trade.type === 'buy' ? '#000000' : '#A8C5DA'),
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 1,
+                    pointRadius: 4.5,
+                    pointHoverRadius: 7,
+                    pointHitRadius: 10,
+                    pointStyle: 'circle',
+                    showLine: false,
+                    order: 99,
+                  }
+                ]
+              });
+              setIsLoading(false);
+            })
+            .catch(csvErr => {
+              setError('실시간/CSV 데이터 모두 로딩 실패: ' + (e.message || e) + ' / ' + (csvErr.message || csvErr));
+              setIsLoading(false);
+            });
+        });
       return;
     }
     async function loadCsvData() {

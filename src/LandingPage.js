@@ -229,18 +229,31 @@ export default function LandingPage() {
     }
   };
 
-  // 로그인 후 거래 데이터 있으면 대시보드로 이동
+  // 로그인 후 거래 데이터 있으면 대시보드로 이동 (거래내역 기반 종목 자동 이동)
   useEffect(() => {
     async function checkAndRedirect() {
       if (authLoading) return; // 아직 인증 확인 중이면 대기
       if (user) {
         setRedirectPending(true);
-        const { count, error } = await supabase
+        const { data, error } = await supabase
           .from('trades')
-          .select('id', { count: 'exact', head: true })
+          .select('ticker, date')
           .eq('user_id', user.id);
-        if (!error && count > 0) {
-          navigate('/dashboard');
+        if (!error && data && data.length > 0) {
+          // 거래내역이 있는 종목만 추출
+          const tickers = Array.from(new Set(data.map(t => t.ticker)));
+          if (tickers.length === 1) {
+            navigate(`/dashboard/${tickers[0].toLowerCase()}`);
+          } else if (tickers.length > 1) {
+            // 최근 거래 종목으로 이동 (date 기준)
+            const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const recentTicker = sorted[0]?.ticker;
+            if (recentTicker) {
+              navigate(`/dashboard/${recentTicker.toLowerCase()}`);
+            } else {
+              navigate(`/dashboard/${tickers[0].toLowerCase()}`);
+            }
+          }
         } else {
           setRedirectPending(false);
         }

@@ -11,9 +11,9 @@
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 8px 32px rgba(16, 24, 40, 0.18);
-  padding: 0 0 0 0;
-  min-width: 600px;
-  max-width: 95vw;
+  padding: 0;
+  min-width: 480px;
+  max-width: 98vw;
   text-align: left;
   position: relative;
   overflow: hidden;
@@ -45,18 +45,21 @@
   font-family: 'Pretendard', 'sans-serif';
   font-size: 18px;
   font-weight: 700;
-  margin-bottom: 0;
   color: #101828;
   margin-top: 0;
   padding: 24px 24px 0 24px;
+  text-align: left;
+
 }
 .custom-modal-desc {
   font-family: 'Pretendard', 'sans-serif';
   font-size: 14px;
+  line-height: 1.4;
   color: #475467;
   margin-bottom: 24px;
   margin-top: 8px;
   padding: 0 24px;
+  text-align: left;
 }
 .custom-modal-table-wrapper {
   background: #494a4c;

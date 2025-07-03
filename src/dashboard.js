@@ -19,6 +19,7 @@ import { parseTradeFile } from './utils/tradeUpload';
 import Modal from './components/Modal';
 import CustomAddStockModal from './components/CustomAddStockModal';
 import CustomPricingModal from './components/CustomPricingModal';
+import CustomUpdateTradeModal from './components/CustomUpdateTradeModal';
 
 function Dashboard() {
   const { ticker } = useParams();
@@ -327,7 +328,11 @@ function Dashboard() {
   // 파일 input ref 생성
   const fileInputRef = useRef();
   const handleAddTradeClick = () => {
-    if (fileInputRef.current) fileInputRef.current.click();
+    setUpdateTradeModalOpen(true);
+    setPendingTradeFile(null);
+    setPendingTradeFileName("");
+    setPendingTradeError("");
+    setPendingTradeRows([]);
   };
   // Modal 상태 추가
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
@@ -378,7 +383,53 @@ function Dashboard() {
       if (error) {
         alert('업로드 실패: ' + error.message);
       } else {
-        window.location.reload();
+        // window.location.reload() 대신 데이터 fetch 후 setState
+        // 거래내역 fetch
+        const { data: trades, error: fetchError } = await supabase
+          .from('trades')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('ticker', ticker?.toUpperCase())
+          .order('date', { ascending: true });
+        if (!fetchError && trades) {
+          const mapped = trades.map(t => {
+            const shares = t.share ?? t.shares ?? 0;
+            const { share, ...rest } = t;
+            return {
+              ...rest,
+              x: t.date ? new Date(t.date) : undefined,
+              y: typeof t.price === 'number' ? t.price : Number(t.price),
+              shares,
+            };
+          });
+          setCustomTrades(mapped);
+        }
+        // 차트 데이터 fetch (priceData)
+        let csvFile = '';
+        if (ticker === 'o') csvFile = '/o_stock_data.csv';
+        else if (ticker === 'nke') csvFile = '/nike_stock_data.csv';
+        else csvFile = `/nike_stock_data.csv`;
+        const response = await fetch(process.env.PUBLIC_URL + csvFile);
+        if (response.ok) {
+          const text = await response.text();
+          const lines = text.split('\n').filter(Boolean);
+          const header = lines[0].split(',');
+          const dateIdx = header.indexOf('Date');
+          let priceIdx = header.indexOf('Price');
+          if (priceIdx === -1) priceIdx = header.indexOf('Close');
+          const dataLines = lines.slice(1);
+          const parsed = dataLines.map(line => {
+            const cols = line.split(',');
+            const dateStr = cols[dateIdx] ? cols[dateIdx].trim() : '';
+            const date = dateStr ? new Date(dateStr + 'T00:00:00Z') : null;
+            const price = parseFloat(cols[priceIdx]);
+            return {
+              x: date,
+              y: price
+            };
+          }).filter(d => d.x instanceof Date && !isNaN(d.x.getTime()) && !isNaN(d.y));
+          setPriceData(parsed);
+        }
       }
     } catch (err) {
       alert('업로드 실패: ' + (err.message || err.error_description || ''));
@@ -612,206 +663,328 @@ function Dashboard() {
     fetchUserTickers();
   }, [user]);
 
+  const [updateTradeModalOpen, setUpdateTradeModalOpen] = useState(false);
+  const [pendingTradeFile, setPendingTradeFile] = useState(null);
+  const [pendingTradeFileName, setPendingTradeFileName] = useState("");
+  const [pendingTradeError, setPendingTradeError] = useState("");
+  const [pendingTradeRows, setPendingTradeRows] = useState([]);
+
+  // 모달 내 파일 업로드/검증
+  const handleTradeFileUpload = async (file) => {
+    setPendingTradeFile(file);
+    setPendingTradeFileName(file.name);
+    setPendingTradeError("");
+    try {
+      const trades = await parseTradeFile(file);
+      const currentTicker = ticker?.toUpperCase();
+      if (trades.length === 0) {
+        setPendingTradeError('업로드할 거래가 없습니다.');
+        setPendingTradeRows([]);
+        return;
+      }
+      const invalid = trades.find(t => t.ticker !== currentTicker);
+      if (invalid) {
+        setPendingTradeError(`${currentTicker} 내역만 업로드 가능합니다.`);
+        setPendingTradeRows([]);
+        return;
+      }
+      setPendingTradeRows(trades);
+    } catch (err) {
+      setPendingTradeError('업로드 실패: ' + (err.message || err.error_description || ''));
+      setPendingTradeRows([]);
+    }
+  };
+
+  // 모달 내 업데이트 버튼 클릭 시
+  const handleTradeConfirm = async () => {
+    if (!pendingTradeFile || pendingTradeError || pendingTradeRows.length === 0) return;
+    setUpdateTradeModalOpen(false);
+    setUploading(true);
+    try {
+      await supabase
+        .from('trades')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('ticker', ticker?.toUpperCase());
+      const { error } = await supabase.from('trades').insert(
+        pendingTradeRows.map(row => ({
+          user_id: user.id,
+          ticker: row.ticker,
+          date: row.date,
+          price: row.price,
+          share: row.share,
+          type: row.type,
+          ...(row.journal ? { journal: row.journal } : {})
+        }))
+      );
+      if (error) {
+        alert('업로드 실패: ' + error.message);
+      } else {
+        // window.location.reload() 대신 데이터 fetch 후 setState
+        // 거래내역 fetch
+        const { data: trades, error: fetchError } = await supabase
+          .from('trades')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('ticker', ticker?.toUpperCase())
+          .order('date', { ascending: true });
+        if (!fetchError && trades) {
+          const mapped = trades.map(t => {
+            const shares = t.share ?? t.shares ?? 0;
+            const { share, ...rest } = t;
+            return {
+              ...rest,
+              x: t.date ? new Date(t.date) : undefined,
+              y: typeof t.price === 'number' ? t.price : Number(t.price),
+              shares,
+            };
+          });
+          setCustomTrades(mapped);
+        }
+        // 차트 데이터 fetch (priceData)
+        let csvFile = '';
+        if (ticker === 'o') csvFile = '/o_stock_data.csv';
+        else if (ticker === 'nke') csvFile = '/nike_stock_data.csv';
+        else csvFile = `/nike_stock_data.csv`;
+        const response = await fetch(process.env.PUBLIC_URL + csvFile);
+        if (response.ok) {
+          const text = await response.text();
+          const lines = text.split('\n').filter(Boolean);
+          const header = lines[0].split(',');
+          const dateIdx = header.indexOf('Date');
+          let priceIdx = header.indexOf('Price');
+          if (priceIdx === -1) priceIdx = header.indexOf('Close');
+          const dataLines = lines.slice(1);
+          const parsed = dataLines.map(line => {
+            const cols = line.split(',');
+            const dateStr = cols[dateIdx] ? cols[dateIdx].trim() : '';
+            const date = dateStr ? new Date(dateStr + 'T00:00:00Z') : null;
+            const price = parseFloat(cols[priceIdx]);
+            return {
+              x: date,
+              y: price
+            };
+          }).filter(d => d.x instanceof Date && !isNaN(d.x.getTime()) && !isNaN(d.y));
+          setPriceData(parsed);
+        }
+      }
+    } catch (err) {
+      alert('업로드 실패: ' + (err.message || err.error_description || ''));
+    } finally {
+      setUploading(false);
+      setPendingTradeFile(null);
+      setPendingTradeFileName("");
+      setPendingTradeError("");
+      setPendingTradeRows([]);
+    }
+  };
+
+  const [dataReady, setDataReady] = useState(false);
+
+  // 차트 데이터와 거래내역 모두 준비됐는지 체크
+  useEffect(() => {
+    if (!isLoading && priceData.length > 0 && customTrades) {
+      setDataReady(true);
+    } else {
+      setDataReady(false);
+    }
+  }, [isLoading, priceData, customTrades]);
+
   return (
     <>
       <Header />
-    <div className="dashboard-container">
-      <div className="metrics-grid">
-        <KpiCard
-            title="내 평가금"
-            value={latestPrice !== null && totalShares !== null ? `$${(latestPrice * totalShares).toFixed(2)}` : '...'}
-            change={evalChange}
-            changeColor={evalChangeColor}
-            variant="primary"
-        />
-        <KpiCard
-            title="내 평단가 · 보유수"
-            value={avgPrice && totalShares ? (
-              <span style={{display:'flex',alignItems:'center',gap:8}}>
-                {`$${avgPrice.toFixed(2)}`}
-                <span style={{fontWeight:600,margin:'0 2px',fontSize:20}}>&times;</span>
-                {`${totalShares}주`}
-              </span>
-            ) : '...'}
-            change={avgChangeLabel}
-            changeColor="neutral"
-            variant="secondary"
-        />
-        <KpiCard
-            title="거래내역"
-            value={
-              <div className="kpi-main-value kpi-trade-value">
-                <div className="kpi-trade-group">
-                  <span className="kpi-trade-buy">{`매수 ${buyCount}`}</span>
-                  <span className="kpi-dot"></span>
-                  <span className="kpi-trade-sell">{`매도 ${sellCount}`}</span>
+      {dataReady ? (
+        <>
+          <div className="dashboard-container">
+            <div className="metrics-grid">
+              <KpiCard
+                title="내 평가금"
+                value={latestPrice !== null && totalShares !== null ? `$${(latestPrice * totalShares).toFixed(2)}` : '...'}
+                change={evalChange}
+                changeColor={evalChangeColor}
+                variant="primary"
+              />
+              <KpiCard
+                title="내 평단가 · 보유수"
+                value={avgPrice && totalShares ? (
+                  <span style={{display:'flex',alignItems:'center',gap:8}}>
+                    {`$${avgPrice.toFixed(2)}`}
+                    <span style={{fontWeight:600,margin:'0 2px',fontSize:20}}>&times;</span>
+                    {`${totalShares}주`}
+                  </span>
+                ) : '...'}
+                change={avgChangeLabel}
+                changeColor="neutral"
+                variant="secondary"
+              />
+              <KpiCard
+                title="거래내역"
+                value={
+                  <div className="kpi-main-value kpi-trade-value">
+                    <div className="kpi-trade-group">
+                      <span className="kpi-trade-buy">{`매수 ${buyCount}`}</span>
+                      <span className="kpi-dot"></span>
+                      <span className="kpi-trade-sell">{`매도 ${sellCount}`}</span>
+                    </div>
+                    <Tooltip content="이 종목의 거래 내역을 업로드하세요">
+                      <button
+                        className="kpi-add-btn"
+                        aria-label="거래내역 추가"
+                        onClick={handleAddTradeClick}
+                        type="button"
+                      >
+                        <span className="kpi-add-btn-icon" dangerouslySetInnerHTML={{__html: `<svg width=\"24\" height=\"25\" viewBox=\"0 0 24 25\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><g clip-path=\"url(#clip0_296_31321)\"><path d=\"M12 0.5L12.3888 0.5012L12.7704 0.506L13.5096 0.5264L13.8684 0.542L14.5632 0.5828L15.2268 0.638C20.9688 1.1948 23.3052 3.5312 23.862 9.2732L23.9172 9.9368L23.958 10.6316C23.964 10.7492 23.97 10.8692 23.9736 10.9904L23.994 11.7296L24 12.5L23.994 13.2704L23.9736 14.0096L23.958 14.3684L23.9172 15.0632L23.862 15.7268C23.3052 21.4688 20.9688 23.8052 15.2268 24.362L14.5632 24.4172L13.8684 24.458C13.7508 24.464 13.6308 24.47 13.5096 24.4736L12.7704 24.494L12 24.5L11.2296 24.494L10.4904 24.4736L10.1316 24.458L9.4368 24.4172L8.7732 24.362C3.0312 23.8052 0.6948 21.4688 0.138 15.7268L0.0828 15.0632L0.0420001 14.3684C0.0361623 14.2488 0.0309622 14.1292 0.0264001 14.0096L0.00600014 13.2704C0.00240014 13.0184 0 12.7616 0 12.5L0.00119991 12.1112L0.00600014 11.7296L0.0264001 10.9904L0.0420001 10.6316L0.0828 9.9368L0.138 9.2732C0.6948 3.5312 3.0312 1.1948 8.7732 0.638L9.4368 0.5828L10.1316 0.542C10.2492 0.536 10.3692 0.53 10.4904 0.5264L11.2296 0.506C11.4816 0.5024 11.7384 0.5 12 0.5ZM12 7.7C11.6817 7.7 11.3765 7.82643 11.1515 8.05147C10.9264 8.27652 10.8 8.58174 10.8 8.9V11.3H8.4L8.2596 11.3084C7.95589 11.3445 7.67743 11.4953 7.48112 11.7298C7.28481 11.9643 7.18547 12.265 7.20339 12.5703C7.22132 12.8757 7.35515 13.1626 7.57756 13.3726C7.79996 13.5825 8.09414 13.6997 8.4 13.7H10.8V16.1L10.8084 16.2404C10.8445 16.5441 10.9953 16.8226 11.2298 17.0189C11.4643 17.2152 11.765 17.3145 12.0703 17.2966C12.3757 17.2787 12.6626 17.1448 12.8726 16.9224C13.0825 16.7 13.1997 16.4059 13.2 16.1V13.7H15.6L15.7404 13.6916C16.0441 13.6555 16.3226 13.5047 16.5189 13.2702C16.7152 13.0357 16.8145 12.735 16.7966 12.4297C16.7787 12.1243 16.6448 11.8374 16.4224 11.6274C16.2 11.4175 15.9059 11.3003 15.6 11.3H13.2V8.9L13.1916 8.7596C13.1572 8.4677 13.0169 8.19857 12.7972 8.00326C12.5776 7.80795 12.2939 7.70004 12 7.7Z" fill=\"black\"/></g><defs><clipPath id=\"clip0_296_31321\"><rect width=\"24\" height=\"24\" fill=\"white\" transform=\"translate(0 0.5)\"/></clipPath></defs></svg>`}} />
+                      </button>
+                    </Tooltip>
+                  </div>
+                }
+                change={<span className="kpi-trade-period">{noTradePeriod}</span>}
+                changeColor="neutral"
+                variant="tertiary"
+              />
+            </div>
+            <div className="chart-top-bar">
+              <div className="chart-top-bar-left">
+                <img src={meta.logo} alt={meta.name} className="chart-stock-logo" />
+                <div className="chart-stock-info-block">
+                  <div className="chart-stock-header-row" style={{position:'relative'}} ref={dropdownRef}>
+                    <span className="chart-stock-name" style={{cursor:'pointer'}} onClick={() => setDropdownOpen(v => !v)}>{meta.name}</span>
+                    <button className="chart-stock-dropdown" aria-label="종목 선택" onClick={() => setDropdownOpen(v => !v)}>
+                      {dropdownOpen ? (
+                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 10l4-4 4 4" stroke="#222" strokeWidth="2" fill="none" strokeLinecap="round"/></svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" stroke="#222" strokeWidth="2" fill="none" strokeLinecap="round"/></svg>
+                      )}
+                    </button>
+                    {dropdownOpen && (
+                      <div style={{position:'absolute',top:'110%',left:0,zIndex:20000}}>
+                        <DropdownMenu stocks={stocks} onSelect={handleStockSelect} onAddStock={handleAddStock} />
+                      </div>
+                    )}
+                  </div>
+                  <span className="chart-stock-price">${mainLastPrice ? mainLastPrice.toFixed(2) : '--'}</span>
+                  <div className="chart-stock-change-row">
+                    <span className="chart-stock-change-label">
+                      {timeRange === '직접입력'
+                        ? (!customStartDate || !customEndDate
+                            ? '기간을 입력하세요.'
+                            : '입력 기간보다')
+                        : periodLabel + '보다'}
+                    </span>
+                    <span className="chart-stock-change-value">
+                      {(() => {
+                        if (timeRange === '직접입력') {
+                          if (!customStartDate || !customEndDate) return '';
+                          if (!chartFirst || !chartLast) return '--';
+                          const change = chartLast.y - chartFirst.y;
+                          const percent = chartFirst.y !== 0 ? (change / chartFirst.y) * 100 : 0;
+                          const sign = change > 0 ? '+' : change < 0 ? '-' : '';
+                          const color = change > 0 ? '#F44336' : change < 0 ? '#0090FF' : '#222';
+                          return <span style={{color}}>{`${sign}$${Math.abs(change).toFixed(2)} (${Math.abs(percent).toFixed(1)}%)`}</span>;
+                        } else {
+                          if (!chartFirst || !chartLast) return '--';
+                          const change = chartLast.y - chartFirst.y;
+                          const percent = chartFirst.y !== 0 ? (change / chartFirst.y) * 100 : 0;
+                          const sign = change > 0 ? '+' : change < 0 ? '-' : '';
+                          const color = change > 0 ? '#F44336' : change < 0 ? '#0090FF' : '#222';
+                          return <span style={{color}}>{`${sign}$${Math.abs(change).toFixed(2)} (${Math.abs(percent).toFixed(1)}%)`}</span>;
+                        }
+                      })()}
+                    </span>
+                  </div>
                 </div>
-                <Tooltip content="이 종목의 거래 내역을 업로드하세요">
-                  <button
-                    className="kpi-add-btn"
-                    aria-label="거래내역 추가"
-                    onClick={handleAddTradeClick}
-                    type="button"
-                  >
-                    <span className="kpi-add-btn-icon" dangerouslySetInnerHTML={{__html: `<svg width=\"24\" height=\"25\" viewBox=\"0 0 24 25\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><g clip-path=\"url(#clip0_296_31321)\"><path d=\"M12 0.5L12.3888 0.5012L12.7704 0.506L13.5096 0.5264L13.8684 0.542L14.5632 0.5828L15.2268 0.638C20.9688 1.1948 23.3052 3.5312 23.862 9.2732L23.9172 9.9368L23.958 10.6316C23.964 10.7492 23.97 10.8692 23.9736 10.9904L23.994 11.7296L24 12.5L23.994 13.2704L23.9736 14.0096L23.958 14.3684L23.9172 15.0632L23.862 15.7268C23.3052 21.4688 20.9688 23.8052 15.2268 24.362L14.5632 24.4172L13.8684 24.458C13.7508 24.464 13.6308 24.47 13.5096 24.4736L12.7704 24.494L12 24.5L11.2296 24.494L10.4904 24.4736L10.1316 24.458L9.4368 24.4172L8.7732 24.362C3.0312 23.8052 0.6948 21.4688 0.138 15.7268L0.0828 15.0632L0.0420001 14.3684C0.0361623 14.2488 0.0309622 14.1292 0.0264001 14.0096L0.00600014 13.2704C0.00240014 13.0184 0 12.7616 0 12.5L0.00119991 12.1112L0.00600014 11.7296L0.0264001 10.9904L0.0420001 10.6316L0.0828 9.9368L0.138 9.2732C0.6948 3.5312 3.0312 1.1948 8.7732 0.638L9.4368 0.5828L10.1316 0.542C10.2492 0.536 10.3692 0.53 10.4904 0.5264L11.2296 0.506C11.4816 0.5024 11.7384 0.5 12 0.5ZM12 7.7C11.6817 7.7 11.3765 7.82643 11.1515 8.05147C10.9264 8.27652 10.8 8.58174 10.8 8.9V11.3H8.4L8.2596 11.3084C7.95589 11.3445 7.67743 11.4953 7.48112 11.7298C7.28481 11.9643 7.18547 12.265 7.20339 12.5703C7.22132 12.8757 7.35515 13.1626 7.57756 13.3726C7.79996 13.5825 8.09414 13.6997 8.4 13.7H10.8V16.1L10.8084 16.2404C10.8445 16.5441 10.9953 16.8226 11.2298 17.0189C11.4643 17.2152 11.765 17.3145 12.0703 17.2966C12.3757 17.2787 12.6626 17.1448 12.8726 16.9224C13.0825 16.7 13.1997 16.4059 13.2 16.1V13.7H15.6L15.7404 13.6916C16.0441 13.6555 16.3226 13.5047 16.5189 13.2702C16.7152 13.0357 16.8145 12.735 16.7966 12.4297C16.7787 12.1243 16.6448 11.8374 16.4224 11.6274C16.2 11.4175 15.9059 11.3003 15.6 11.3H13.2V8.9L13.1916 8.7596C13.1572 8.4677 13.0169 8.19857 12.7972 8.00326C12.5776 7.80795 12.2939 7.70004 12 7.7Z" fill=\"black\"/></g><defs><clipPath id=\"clip0_296_31321\"><rect width=\"24\" height=\"24\" fill=\"white\" transform=\"translate(0 0.5)\"/></clipPath></defs></svg>`}} />
-                  </button>
-                </Tooltip>
               </div>
-            }
-            change={<span className="kpi-trade-period">{noTradePeriod}</span>}
-            changeColor="neutral"
-            variant="tertiary"
-        />
-      </div>
-        <div className="chart-top-bar">
-          <div className="chart-top-bar-left">
-            <img src={meta.logo} alt={meta.name} className="chart-stock-logo" />
-            <div className="chart-stock-info-block">
-              <div className="chart-stock-header-row" style={{position:'relative'}} ref={dropdownRef}>
-                <span className="chart-stock-name" style={{cursor:'pointer'}} onClick={() => setDropdownOpen(v => !v)}>{meta.name}</span>
-                <button className="chart-stock-dropdown" aria-label="종목 선택" onClick={() => setDropdownOpen(v => !v)}>
-                  {dropdownOpen ? (
-                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 10l4-4 4 4" stroke="#222" strokeWidth="2" fill="none" strokeLinecap="round"/></svg>
-                  ) : (
-                    <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" stroke="#222" strokeWidth="2" fill="none" strokeLinecap="round"/></svg>
-                  )}
-                </button>
-                {dropdownOpen && (
-                  <div style={{position:'absolute',top:'110%',left:0,zIndex:20000}}>
-                    <DropdownMenu stocks={stocks} onSelect={handleStockSelect} onAddStock={handleAddStock} />
+              <div className="chart-top-bar-right">
+              <div className="time-selector" style={{ position: 'relative' }}>
+                <div
+                  className="time-slider-bg"
+                  style={{
+                    position: 'absolute',
+                    left: sliderStyle.left,
+                    width: sliderStyle.width,
+                    background: '#fff',
+                    borderRadius: '8px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                    transition: 'left 0.35s cubic-bezier(.4,0,.2,1), width 0.35s cubic-bezier(.4,0,.2,1)',
+                    zIndex: 0
+                  }}
+                />
+                {timeOptions.map((opt, i) => (
+                  <button
+                    key={opt}
+                    ref={el => optionRefs.current[i] = el}
+                    className={`time-option ${timeRange === opt ? 'active' : ''}`}
+                    onClick={() => setTimeRange(opt)}
+                    style={opt === '직접입력' ? { minWidth: 80, fontWeight: 700 } : {}}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+                {timeRange === '직접입력' && (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      type="date"
+                      value={customStartDate}
+                      onChange={e => setCustomStartDate(e.target.value)}
+                      style={{
+                        border: '1px solid #E0E0E0',
+                        borderRadius: 8,
+                        padding: '10px 16px',
+                        fontSize: 14,
+                        fontFamily: 'Roboto Mono',
+                        outline: 'none',
+                        background: '#fff',
+                        color: '#222',
+                        width: 160
+                      }}
+                      placeholder="YYYY.MM.DD"
+                    />
+                    <span style={{ alignSelf: 'center', color: '#B0B0B0', fontWeight: 700 }}>~</span>
+                    <input
+                      type="date"
+                      value={customEndDate}
+                      onChange={e => setCustomEndDate(e.target.value)}
+                      style={{
+                        border: '1px solid #E0E0E0',
+                        borderRadius: 8,
+                        padding: '10px 16px',
+                        fontSize: 14,
+                        fontFamily: 'Roboto Mono',
+                        outline: 'none',
+                        background: '#fff',
+                        color: '#222',
+                        width: 160
+                      }}
+                      placeholder="YYYY.MM.DD"
+                    />
                   </div>
                 )}
               </div>
-              <span className="chart-stock-price">${mainLastPrice ? mainLastPrice.toFixed(2) : '--'}</span>
-              <div className="chart-stock-change-row">
-                <span className="chart-stock-change-label">
-                  {timeRange === '직접입력'
-                    ? (!customStartDate || !customEndDate
-                        ? '기간을 입력하세요.'
-                        : '입력 기간보다')
-                    : periodLabel + '보다'}
-                </span>
-                <span className="chart-stock-change-value">
-                  {(() => {
-                    if (timeRange === '직접입력') {
-                      if (!customStartDate || !customEndDate) return '';
-                      if (!chartFirst || !chartLast) return '--';
-                      const change = chartLast.y - chartFirst.y;
-                      const percent = chartFirst.y !== 0 ? (change / chartFirst.y) * 100 : 0;
-                      const sign = change > 0 ? '+' : change < 0 ? '-' : '';
-                      const color = change > 0 ? '#F44336' : change < 0 ? '#0090FF' : '#222';
-                      return <span style={{color}}>{`${sign}$${Math.abs(change).toFixed(2)} (${Math.abs(percent).toFixed(1)}%)`}</span>;
-                    } else {
-                      if (!chartFirst || !chartLast) return '--';
-                      const change = chartLast.y - chartFirst.y;
-                      const percent = chartFirst.y !== 0 ? (change / chartFirst.y) * 100 : 0;
-                      const sign = change > 0 ? '+' : change < 0 ? '-' : '';
-                      const color = change > 0 ? '#F44336' : change < 0 ? '#0090FF' : '#222';
-                      return <span style={{color}}>{`${sign}$${Math.abs(change).toFixed(2)} (${Math.abs(percent).toFixed(1)}%)`}</span>;
-                    }
-                  })()}
-                </span>
-              </div>
+            </div>
+            <div className="chart-section-container">
+              <main className="chart-card">
+                <ChartComponent
+                  symbol="NKE"
+                  timeRange={timeRange}
+                  allTrades={customTrades}
+                  priceData={filteredData}
+                />
+              </main>
             </div>
           </div>
-          <div className="chart-top-bar-right">
-          <div className="time-selector" style={{ position: 'relative' }}>
-            <div
-              className="time-slider-bg"
-              style={{
-                position: 'absolute',
-                left: sliderStyle.left,
-                width: sliderStyle.width,
-                background: '#fff',
-                borderRadius: '8px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                transition: 'left 0.35s cubic-bezier(.4,0,.2,1), width 0.35s cubic-bezier(.4,0,.2,1)',
-                zIndex: 0
-              }}
-            />
-            {timeOptions.map((opt, i) => (
-              <button
-                key={opt}
-                ref={el => optionRefs.current[i] = el}
-                className={`time-option ${timeRange === opt ? 'active' : ''}`}
-                onClick={() => setTimeRange(opt)}
-                style={opt === '직접입력' ? { minWidth: 80, fontWeight: 700 } : {}}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-            {timeRange === '직접입력' && (
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input
-                  type="date"
-                  value={customStartDate}
-                  onChange={e => setCustomStartDate(e.target.value)}
-                  style={{
-                    border: '1px solid #E0E0E0',
-                    borderRadius: 8,
-                    padding: '10px 16px',
-                    fontSize: 14,
-                    fontFamily: 'Roboto Mono',
-                    outline: 'none',
-                    background: '#fff',
-                    color: '#222',
-                    width: 160
-                  }}
-                  placeholder="YYYY.MM.DD"
-                />
-                <span style={{ alignSelf: 'center', color: '#B0B0B0', fontWeight: 700 }}>~</span>
-                <input
-                  type="date"
-                  value={customEndDate}
-                  onChange={e => setCustomEndDate(e.target.value)}
-                  style={{
-                    border: '1px solid #E0E0E0',
-                    borderRadius: 8,
-                    padding: '10px 16px',
-                    fontSize: 14,
-                    fontFamily: 'Roboto Mono',
-                    outline: 'none',
-                    background: '#fff',
-                    color: '#222',
-                    width: 160
-                  }}
-                  placeholder="YYYY.MM.DD"
-                />
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="chart-section-container">
-          <main className="chart-card">
-            <ChartComponent
-              symbol="NKE"
-              timeRange={timeRange}
-              allTrades={customTrades}
-              priceData={filteredData}
-            />
-          </main>
-        </div>
-      </div>
-      
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        style={{display:'none'}}
-        onChange={handleFileChange}
-        tabIndex={-1}
-      />
-      {/* 거래내역 업데이트 모달 */}
-      <Modal
-        open={updateModalOpen}
-        onClose={() => setUpdateModalOpen(false)}
-        title="거래내역을 업데이트할게요"
-        desc={"업데이트 과정에서 기존 데이터가 모두 사라집니다.<br>새 파일에 기존 거래내역이 포함되었는지 확인해주세요."}
-        actions={[
-          { label: '취소', onClick: () => setUpdateModalOpen(false) },
-          { label: '진행하기', onClick: handleConfirmUpdate, variant: 'primary', autoFocus: true }
-        ]}
+        </>
+      ) : (
+        <div style={{padding: 80, textAlign: 'center', fontSize: 20, color: '#888'}}>데이터 준비 중...</div>
+      )}
+      <CustomUpdateTradeModal
+        open={updateTradeModalOpen}
+        onClose={() => setUpdateTradeModalOpen(false)}
+        ticker={ticker?.toUpperCase()}
+        onFileUpload={handleTradeFileUpload}
+        error={pendingTradeError}
+        fileName={pendingTradeFileName}
+        onConfirm={handleTradeConfirm}
       />
       <CustomAddStockModal
         open={addStockModalOpen}
