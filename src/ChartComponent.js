@@ -12,6 +12,8 @@ import {
   Legend,
   Filler,
   TimeScale,
+  ScatterController,
+  LineController,
 } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import { ko } from 'date-fns/locale';
@@ -86,7 +88,9 @@ ChartJS.register(
   TimeScale,
   annotationPlugin,
   customCrosshair,
-  overlayTradePointsPlugin
+  overlayTradePointsPlugin,
+  ScatterController,
+  LineController
 );
 
 const getCssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
