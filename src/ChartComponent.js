@@ -131,7 +131,7 @@ function customTooltipHandler(context) {
     labelDiv.style.fontWeight = 'bold';
     labelDiv.style.fontSize = '14px';
     labelDiv.style.background = 'rgba(255,255,255,0.95)';
-    labelDiv.style.padding = '4px 12px';
+    labelDiv.style.padding = '8px 12px';
     labelDiv.style.border = '1px solid #111111';
     labelDiv.style.borderRadius = '8px';
     labelDiv.style.transition = 'left 0.05s';
@@ -155,9 +155,9 @@ function customTooltipHandler(context) {
         }
       }
       labelDiv.innerHTML = `
-        <div style='font-size:16px;font-weight:700;color:#fff;font-family:Roboto Mono, monospace;'>${typeText} $${trade.price} x ${trade.shares}주</div>
         <div style='font-size:12px;font-weight:500;color:#fff;font-family:Roboto Mono, monospace;'>${date}</div>
-        <div style='font-size:12px;color:#fff;margin-top:2px;font-family:Roboto Mono, monospace;'>${trade.journal || ''}</div>
+        <div style='font-size:16px;font-weight:700;color:#fff;font-family:Roboto Mono, monospace;'>${typeText} $${trade.price} x ${trade.shares}주</div>
+        ${trade.journal ? `<div style='font-size:12px;color:#fff;margin-top:2px;font-family:Roboto Mono, monospace;'>${trade.journal}</div>` : ''}
       `;
       labelDiv.style.display = 'block';
       labelDiv.style.left = `${tooltip.caretX}px`;

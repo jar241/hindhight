@@ -53,7 +53,7 @@ export default function CustomUpdateTradeModal({ open, onClose, ticker, onFileUp
             ref={inputRef}
             className="custom-update-modal-file-upload-input"
             onChange={handleFileChange}
-            accept=".xlsx,.xls,.csv"
+            accept=".xlsx,.xls"
             style={{ display: 'none' }}
           />
           <img
