@@ -317,9 +317,10 @@ function ChartComponent({ symbol = 'NKE', timeRange, useDummy = false, dummyData
           fetch(process.env.PUBLIC_URL + csvFile)
             .then(response => {
               if (!response.ok) throw new Error('CSV 파일이 없습니다.');
-              return response.text();
+              return response.arrayBuffer();
             })
-            .then(text => {
+            .then(buffer => {
+              const text = new TextDecoder('utf-8').decode(buffer);
               const lines = text.split('\n').filter(Boolean);
               const header = lines[0].split(',');
               const dateIdx = 0;
@@ -375,7 +376,8 @@ function ChartComponent({ symbol = 'NKE', timeRange, useDummy = false, dummyData
       try {
         const response = await fetch(process.env.PUBLIC_URL + '/nike_stock_data.csv');
         if (!response.ok) throw new Error('public/nike_stock_data.csv 파일이 없습니다. (src/nike_stock_data.csv를 public/으로 복사하세요)');
-        const text = await response.text();
+        const buffer = await response.arrayBuffer();
+        const text = new TextDecoder('utf-8').decode(buffer);
         const lines = text.split('\n').filter(Boolean);
         // 헤더 파싱 (Price,Close,High,Low,Open,Volume)
         const header = lines[0].split(',');
