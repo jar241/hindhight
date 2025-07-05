@@ -149,6 +149,18 @@ function Dashboard() {
     loadCsvData();
   }, [ticker]);
 
+  // 기간 옵션 버튼 클릭 핸들러
+  const handleTimeRangeChange = (opt) => {
+    setTimeRange(opt);
+    if (opt === '직접입력') {
+      // 전체 기간의 시작/끝으로 기본값 세팅
+      if (priceData.length > 0) {
+        setCustomStartDate(priceData[0].x.toISOString().slice(0, 10));
+        setCustomEndDate(priceData[priceData.length - 1].x.toISOString().slice(0, 10));
+      }
+    }
+  };
+
   // 구간별 데이터 슬라이싱
   const getFilteredData = () => {
     if (!priceData.length) return [];
@@ -156,11 +168,13 @@ function Dashboard() {
     let startDate = null;
     let endDate = now;
     if (timeRange === '직접입력' && customStartDate && customEndDate) {
-      // customStartDate, customEndDate는 'YYYY-MM-DD' 형식
       startDate = new Date(customStartDate);
       endDate = new Date(customEndDate);
-      // endDate를 하루 뒤로 보정 (포함되게)
       endDate.setDate(endDate.getDate() + 1);
+      if (isNaN(startDate) || isNaN(endDate)) {
+        // 날짜 파싱 실패 시 전체 데이터 반환
+        return priceData;
+      }
     } else {
       switch (timeRange) {
         case '1M': startDate = new Date(now); startDate.setMonth(now.getMonth() - 1); break;
@@ -642,7 +656,14 @@ function Dashboard() {
         }
       }
       setAddStockModalOpen(false);
-      window.location.reload();
+      // 업로드한 종목으로 이동
+      if (tickersInFile.length === 1) {
+        navigate(`/dashboard/${tickersInFile[0].toLowerCase()}`);
+      } else if (tickersInFile.length > 1) {
+        navigate(`/dashboard/${tickersInFile[tickersInFile.length - 1].toLowerCase()}`);
+      } else {
+        window.location.reload();
+      }
     } catch (e) {
       alert('업로드 실패: ' + (e.message || e.error_description || ''));
     }
@@ -914,7 +935,7 @@ function Dashboard() {
                     key={opt}
                     ref={el => optionRefs.current[i] = el}
                     className={`time-option ${timeRange === opt ? 'active' : ''}`}
-                    onClick={() => setTimeRange(opt)}
+                    onClick={() => handleTimeRangeChange(opt)}
                     style={opt === '직접입력' ? { minWidth: 80, fontWeight: 700 } : {}}
                   >
                     {opt}
@@ -994,7 +1015,7 @@ function Dashboard() {
           // 파일 업로드 input 트리거
           const input = document.createElement('input');
           input.type = 'file';
-          input.accept = '.xlsx,.xls';
+          input.accept = '.xlsx,.xls,.csv';
           input.onchange = e => {
             const file = e.target.files[0];
             if (file) handleAddStockUpload(file);
