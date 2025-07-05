@@ -21,18 +21,6 @@
     align-items: center;
 }
   
-.time-slider-bg {
-    position: absolute;
-    z-index: 1;
-    pointer-events: none;
-    /* 배경 투명도 조정 가능 */
-    background: #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    border-radius: 8px;
-    height: 32px;
-    transition: left 0.35s cubic-bezier(.4,0,.2,1), width 0.35s cubic-bezier(.4,0,.2,1);
-}
-  
 .time-option {
     position: relative;
     z-index: 2;
@@ -50,10 +38,23 @@
     transition: color 0.25s cubic-bezier(.4,0,.2,1), font-weight 0.25s cubic-bezier(.4,0,.2,1);
 }
   
+
 .time-option.active {
     color: #111;
     font-weight: 900;
     /* 배경 없음, 강조는 배경 div가 담당 */
+}
+
+.time-slider-bg {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+    /* 배경 투명도 조정 가능 */
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    height: 32px;
+    transition: left 0.35s cubic-bezier(.4,0,.2,1), width 0.35s cubic-bezier(.4,0,.2,1);
 }
 
 /* Action Buttons based on 'button' component */
@@ -84,4 +85,49 @@
     background-color: var(--color-text-primary);
     color: var(--color-background);
     border-color: var(--color-text-primary);
+}
+
+.crosshair-tooltip {
+  position: absolute;
+  top: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid #111;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
+  font-family: 'Roboto Mono', monospace;
+  transition: left 0.05s;
+}
+.crosshair-tooltip--trade {
+  font-family: 'Roboto Mono', monospace;
+  background: #222;
+  color: #fff;
+}
+.crosshair-tooltip--price {
+  background: #fff;
+  color: #111;
+  border: 1.5px solid #222;
+}
+.crosshair-tooltip-date {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+.crosshair-tooltip-title {
+    font-family: 'pretendard';
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  white-space: nowrap;
+}
+.crosshair-tooltip-journal {
+    font-family: 'pretendard';
+  font-size: 12px;
+  margin-top: 4px;
+  margin-bottom: 2px;
+  color: #fff;
+  font-weight: 500;
 } 
