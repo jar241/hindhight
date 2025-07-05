@@ -99,7 +99,7 @@ function FileUploadBox({ onFileUploaded, onRequireAuth }) {
         ref={inputRef}
         style={{ display: 'none' }}
         onChange={handleFileChange}
-        accept=".xlsx,.xls,.csv"
+        accept=".xlsx,.xls"
       />
       <span className="file-upload-icon">
         {fileName ? <FileUploadIconAfter width={40} height={40} /> : <FileUploadIcon width={39} height={40} />}
@@ -112,7 +112,7 @@ function FileUploadBox({ onFileUploaded, onRequireAuth }) {
       ) : (
         <>
           <span className="file-upload-action">파일 업로드</span>
-          <span className="file-upload-instructions">CSV, XLSX, XLS 파일 선택 혹은 여기로 끌어다 놓으세요</span>
+          <span className="file-upload-instructions">XLSX, XLS 파일 선택 혹은 여기로 끌어다 놓으세요</span>
           {error && <div className="file-upload-error-message">{error}</div>}
         </>
       )}
@@ -178,7 +178,7 @@ export default function LandingPage() {
     // 파일 확장자 체크
     const ext = file.name.split('.').pop().toLowerCase();
     if (!["csv", "xlsx", "xls"].includes(ext)) {
-      setError && setError('CSV, XLSX, XLS 파일만 업로드 가능해요');
+      setError && setError('XLSX, XLS 파일만 업로드 가능해요');
       setUploaded(false);
       return;
     }

@@ -153,8 +153,8 @@ function Dashboard() {
   const handleTimeRangeChange = (opt) => {
     setTimeRange(opt);
     if (opt === '직접입력') {
-      // 전체 기간의 시작/끝으로 기본값 세팅
-      if (priceData.length > 0) {
+      // 값이 비어 있을 때만 전체 기간의 시작/끝으로 기본값 세팅
+      if ((!customStartDate || !customEndDate) && priceData.length > 0) {
         setCustomStartDate(priceData[0].x.toISOString().slice(0, 10));
         setCustomEndDate(priceData[priceData.length - 1].x.toISOString().slice(0, 10));
       }
@@ -1015,7 +1015,7 @@ function Dashboard() {
           // 파일 업로드 input 트리거
           const input = document.createElement('input');
           input.type = 'file';
-          input.accept = '.xlsx,.xls,.csv';
+          input.accept = '.xlsx,.xls';
           input.onchange = e => {
             const file = e.target.files[0];
             if (file) handleAddStockUpload(file);
